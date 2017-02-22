@@ -1,0 +1,53 @@
+FLOW:
+
+INTRO:
+- logo
+- tagline
+- apache 2
+- age
+- started at onefinestay, jan from MPC
+- originally just a lib, evolved into framework
+
+CURRENT STATUS:
+- 1.2k stars on github
+- in use at these companies
+
+MICROSERVICES:
+- fowler definition
+- pull out key terms: distributed system, separate processes, lightweight mechanisms
+- bear this in mind...
+
+DEMO:
+- create simple service (RPC greet)
+- explain entrypoint concept [before running]
+- run service in CLI
+- call it with CLI shell
+
+CONCEPTS:
+- entrypoints are...
+- dependencies are... [seques into...]
+
+DEPENDENCY INJECTION:
+- as per europython: say that string processing expensive is...
+- switch out entrypoint? for http?
+
+DEFINITION(S) AGAIN: (maybe?)
+- depenendency injection lets you "hide" messy dependencies
+- has some out of the box tools for "lightweight comms" (NEXT SLIDE early)
+
+BUILT-IN / EXTENSIBLE:
+- we've already seen http, rpc
+- also events
+- also websockets
+- acknowledge that many tools/protocols to be used
+- mention "community" extensions? sqlalchemy, redis, sentry, slack...
+
+DEFINITION AGAIN: (highlight testing...)
+
+TEST HELPERS?
+- bunch of test helpers, want to highlight just one (?): worker_factory
+- take advantage of dep injection
+
+CALL TO ACTION
+- talk to me afterwards
+- come and get a notebook?
