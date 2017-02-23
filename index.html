@@ -167,9 +167,10 @@
                     <aside class="notes">
                         <p>Start with a definition of microservices. This is from the 2014 paper by Martin Fowler &amp; James Lewis -- often used as the canconical defintion.</p>
                         <p>Microservices are... an approach to developing <i>single app as a suite of small services</i>, communicating with lightweight mechanisms</p>
-                        <p>Diagramamtically like {{this}}. It is a distributed system.</p>
-                        <p>Where of these nodes co-ordinates to some degree with the others to form the whole functionality</p>
-                        <p>Nameko tries to separate the logic within each node from the complexities of the larger system</p>
+                        <p>The basic summary is that you're building a distributed system. {{NEXT}}</p>
+                        <p>There are tons of talks about why you may or may not want to adopt this architecture, so i won't cover here.</p>
+                        <p>Nut one thing to consider is that it does introduce a <strong>lot</strong> of complexity.</p>
+                        <p>Nameko encourages you to write services in a way that isolates some of that complexity.</p>
                     </aside>
                 </section>
 
@@ -272,50 +273,59 @@
 
                     <aside class="notes">
                         <ul>
-                            <li>To show this, let's expand our example. Pretend for a minute <strong>string formatting is expensive; we want to cache greetings instead of generating each time</strong></li>
-                            <li>This line "cache = CacheClient" <strong>declares a dependency</strong> from our service to a cache somewhere.</li>
-                            <li>Then in the service method, we can interact with the cache.</li>
+                            <li>To show this, let's expand our example. Pretend for a minute string formatting is <i>expensive</i>; we want to <strong>cache greetings instead of generating each time</strong></li>
+                            <li>This line "cache = CacheClient" <strong>declares a dependency</strong> from our service to a cache <strong>somewhere</strong>.</li>
+                            <li>Then in the service method, we can <strong>get and put items</strong> as needed.</li>
                         </ul>
                         <ul>
-                            <li>Notice that there's no setup here; the method just uses the cache.</li>
-                            <li>The <strong>class level attribute</strong> is different from the <strong>instance level attribute</strong> that the method <strong>sees when it executes</strong></li>
-                            <li>If we access them, <strong>we see that they are different</strong>. One is a DependencyProvider. The other is actually a <strong>memcache.Client, which the method uses</strong> to access the cache</li>
+                            <li>Notice that there's no setup here; <strong>the method just uses the cache</strong>.</li>
+                            <li><strong>This is possible </strong>because the <i>class level attribute</i> is different to the <i>instance level attribute</i> <strong>that the method sees</strong> when it executes</li>
+                        </ul>
+                        <hr/>
+                        <ul>
+                            <li>{{NEXT}} If we inspected them, <strong>we'd see that they are different</strong>. The class-level attr is an <strong>instance of a DependencyProvider</strong>. The instance-level attr is actually a <i>memcache.Client</i> object, <strong>which is the only part the method needs</strong> to use the cache</li>
+                            <li>The <i>DependencyProvider</i> is responsible for returning the <strong>actual dependency</strong>, which is <i>injected</i> into the service at runtime</li>
+                            <li>All the complexity of the dependency, like <strong>managing a connection pool</strong> or <strong>handing reconnections and retries</strong> can be hidden away</li>
+                        </ul>
+                        <hr/>
+                        <ul>
+                            <li><strong>One more thing to point out</strong> is that I changed the entrypoint: now listens for HTTP requests instead of using RPC.</li>
+                            <li>But note that the application logic hasn't had to change as a result.</li>
+                            <li>In other words: <strong>it was a</strong> declarative change, had no impact on procedural code in the method</li>
                         </ul>
                         <ul>
-                            <li>That's because the <i>DependencyProvider</i>, which is the class level attribute, injects the <strong>actual dependency at runtime</strong></li>
-                            <li>This mean <strong>only the relevant interface</strong> has to be exposed to the service method (and developer)</li>
-                            <li>All the complexity of that dep like <strong>managing a connection pool</strong> or <strong>handing reconnections</strong> can be hidden away</li>
-                        </ul>
-                        <ul>
-                            <li><strong>Also note that</strong> I changed the entrypoint: now listens for HTTP requests.</li>
-                            <li>Application logic unchanged by entrypoint change.</li>
-                            <li>In other words: declarative change, no impact on procedural code in the method</li>
-                        </ul>
-                        <ul>
-                            <li>Hopefully you can see how usage of dependencies lets {{next}} "service developers concentrate on application logic"</li>
+                            <li>Hopefully you can see how using dependencies lets {{next}} "service developers concentrate on application logic"</li>
                         </ul>
                     </aside>
                 </section>
 
                 <section>
                     <h2>Test Helpers</h2>
-                    <div>
-                        <pre>
-                            <code class="python">
-    from mock import call
-    from nameko.testing.services import worker_factory
-
-    hello_svc = worker_factory(HelloWorld)
-
-    hello_svc.cache.get.return_value = None
-
-    assert hello_svc.greet("Matt") == "Hello Matt!"
-    assert hello_svc.cache.get.call_args_list == [call("Matt")]
-                             </code>
-                        </pre>
-                    </div>
                     <div class="fragments">
-                        <div class="fragment fade-in" data-fragment-index="0">
+                        <div class="fragment fade-in" data-fragment-index="0" style="position:relative"">
+                            <pre>
+                                <code class="python">
+        from mock import call
+        from nameko.testing.services import worker_factory
+
+        hello_svc = worker_factory(HelloWorld)
+
+        hello_svc.cache.get.return_value = None
+
+        assert hello_svc.greet("Matt") == "Hello Matt!"
+        assert hello_svc.cache.get.call_args_list == [call("Matt")]
+                                 </code>
+                            </pre>
+                        </div>
+                        <div class="fragment fade-in" data-fragment-index="2" style="background: #111111; padding-bottom: 50px; z-index: 999">
+                            <div class="logo">
+                                <span>
+                                    <img src="images/logo.svg" width="100px" height="100px"/>
+                                </span>
+                            </div>
+                            <p>“... lets service developers concentrate on <i>application logic</i> and <span class="highlight">encourages <i>testability</i></span>“</p>
+                        </div>
+                        <div class="fragment fade-in" data-fragment-index="1" style="background: #111111; padding-bottom: 50px; position:relative">
                             <pre>
                                 <code class="python">
     import mockcache
@@ -329,32 +339,26 @@
                                  </code>
                             </pre>
                         </div>
-                        <div class="fragment fade-in" data-fragment-index="1" style="background: #111111; padding-bottom: 50px">
-                            <div class="logo">
-                                <span>
-                                    <img src="images/logo.svg" width="100px" height="100px"/>
-                                </span>
-                            </div>
-                            <p>“... lets service developers concentrate on <i>application logic</i> and <span class="highlight">encourages <i>testability</i></span>“</p>
-                        </div>
                         <div class="spacer" style="height: 300px"></div>
                     </div>
                     <aside class="notes">
                         <ul>
-                            <li>Nameko also ships with some nice test helpers</li>
-                            <li>We've <strong>seen how using dependencies</strong> keeps the service interface clean and simple</li>
-                            <li>This also makes it really easy to <strong>isolate them</strong> during testing</li>
+                            <li>Nameko also comes with some nice test helpers</li>
+                            <li>We've <strong>seen how injecting dependencies</strong> keeps the service <strong>methods</strong> clean and simple</li>
+                            <li>It also makes it really easy to <strong>isolate them</strong> during testing</li>
+                            <li>{{NEXT}}</li>
                         </ul>
                         <ul>
-                            <li>Snippet here, using a helper called <strong>worker_factory</strong>. Useful when<strong> unit testing</strong> services.</li>
-                            <li>You give it your service class, and get an <strong>instance with deps replaced by mocks</strong>. No real memcache cluster reqd.</li>
-                            <li>You can exercise the methods, verify mocks called appropriately</li>
-                            <li>{{NEXT}}
+                            <li>For example here, using a helper called <strong>worker_factory</strong>. Useful when<strong> unit testing</strong> services.</li>
+                            <li>You pass it your service class, and get an <strong>instance with deps replaced by mocks</strong>. <i>No real memcache cluster reqd.</i></li>
+                            <li>You can set return values, exercise the methods, verify mocks called appropriately</li>
+                            <li>{{NEXT}}</li>
                         </ul>
                         <ul>
                             <li>The worker_factory has <strong>another mode of operation</strong> where you can provide an alternative dependency.</li>
-                            <li>In this case Mockcache; much nicer interface than a plain mock for this situation; no need to setup return value</li>
+                            <li>In this case Mockcache; much nicer interface than a plain mock for this situation; (no need to set up return value)</li>
                         </ul>
+                        <hr/>
                         <ul>
                             <li>There are <strong>similar helpers for non-unit tests</strong>, which let you run services with <strong>mocked dependencies</strong>, and other goodies too.</li>
                         </ul>
@@ -364,7 +368,7 @@
                 <section>
                     <h2>Extensible</h2>
                     <div class="fragments">
-                        <div class="fragment fade-out" data-fragment-index="0">
+                        <div class="fragment fade-in" data-fragment-index="0">
                             <div>
                                 <p>"Built-in" Extensions</p>
                                 <ul>
@@ -376,7 +380,7 @@
                                 </ul>
                             </div>
                         </div>
-                        <div class="fragment fade-in" data-fragment-index="0">
+                        <div class="fragment fade-in" data-fragment-index="1" style="background-color: #111111; padding-bottom: 50px">
                             <div>
                                 <p>"Community" Extensions</p>
                                 <ul>
@@ -384,6 +388,7 @@
                                     <li>nameko-sqlalchemy</li>
                                     <li>nameko-redis</li>
                                     <li>nameko-slack</li>
+                                    <li>... and more!</li>
                                 </ul>
                             </div>
                         </div>
@@ -396,20 +401,20 @@
                             <li>Architecture of using entrypoints for reqs "in" and dependencies for reqs "out", is similar to "ports-and-adapters" and "hexagonal arch" patterns.</li>
                             <li>... where your application logic sits between pluggable inputs and outputs</li>
                         </ul>
-                            <li>Nameko is <strong>extensible</strong> because you can easily create new Entrypoints and DependencyProviders.</li>
-                            <li>There are many technology choices nowadays it doesn't make sense to force any particular one on users.</li>
-                            <li>Although we include some so it's useful out-of-the-box, actually all Entrypoints and DependencyProviders are implemented as so-called "extensions"</li>
-                        </ul>
+                            <li>Actually all Entrypoints and DependencyProviders are implemented as so-called "extensions"</li>
+                            <li>It's relatively easily to create new Entrypoints and DependencyProviders.</li>
+                            <li>It would be too limiting as a framework to force specific technology choices on user, but we do include some so it's useful out of the box</li>
+                        </ul>f
                         <ul>
-                            <li>Here are the "built-in" extensions</li>
+                            <li>The ones included with framework are called "built-in" extensions {{NEXT}}</li>
                             <li>The <strong>rpc decorator we've seen</strong> is AMQP based RPC implementation for Req-Resp over message bus</li>
                             <li>There is also <strong>publish-subscribe impl</strong> for <strong>async messaging over AMQP</strong></li>
                             <li>HTTP, based on Werkzeug</li>
                             <li>And timer for cron-like periodic actions, and websockets</li>
                         </ul>
                         <ul>
-                            <li>And there are a growing collection of "community" extensions</li>
-                            <li>Sentry; Sqlalchemy for relational DBs; Redis; even Slack... so you can build chat-bots in nameko</li>
+                            <li>And there are a growing collection of "community" extensions...</li>
+                            <li>Including nameko-slack so you can write chat-bots in nameko</li>
                         </ul>
                     </aside>
                 </section>
